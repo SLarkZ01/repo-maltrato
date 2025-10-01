@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "265808702099",
+    "firebase_url": "https://tallerreportesdenuncia-default-rtdb.firebaseio.com",
+    "project_id": "tallerreportesdenuncia",
+    "storage_bucket": "tallerreportesdenuncia.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:265808702099:android:876e26a42548acad2ffb66",
+        "android_client_info": {
+          "package_name": "com.example.reportemaltrato"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBek_R3IFFJc-nQKiLk1aByJY2yJH5noUs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:265808702099:android:f0d169aa984ec2762ffb66",
+        "android_client_info": {
+          "package_name": "com.example.tallerreportesdenuncia"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBek_R3IFFJc-nQKiLk1aByJY2yJH5noUs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

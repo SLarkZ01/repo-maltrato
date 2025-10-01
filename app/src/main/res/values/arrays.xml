@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="maltrato_types">
+        <item>Físico</item>
+        <item>Psicológico</item>
+        <item>Escolar</item>
+        <item>Animal</item>
+    </string-array>
+</resources>
+
