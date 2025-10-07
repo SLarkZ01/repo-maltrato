@@ -1,6 +1,6 @@
 # ReporteMaltrato — Guía para explicar la implementación ✅
 
-Este README resume, con ejemplos y emojis, cómo el proyecto cumple los requisitos que debes explicar en clase. Incluye: dónde buscar el código, qué mostrar en la presentación y comandos útiles para compilar/pruebas rápidas.
+Este README resume, cómo el proyecto cumple los requisitos a explicar en clase. Incluye: dónde buscar el código y qué mostrar en la presentación.
 
 ---
 
@@ -40,7 +40,7 @@ La app usa Jetpack Compose para la UI, Preferences DataStore para persistencia l
 
 ---
 
-## Qué mostrar en la clase (guion con emojis) 🎤
+## Rutas para explicar 🎤
 1. 🔑 Registro con DataStore (mostrar flujo de datos)
    - Abre `UserPreferencesRepository.kt` y muestra `userPreferencesFlow`.
    - Explica que `RegisterViewModel` recoge ese Flow y la UI hace `collectAsState()`.
@@ -104,32 +104,7 @@ val reports by viewModel.reports.collectAsState()
 
 ---
 
-## Comandos útiles (ejecutar en `cmd.exe` desde la raíz del proyecto)
-- Compilar debug:
-
-```bat
-gradlew assembleDebug
-```
-
-- Ejecutar tests (si hubiera tests):
-
-```bat
-gradlew test
-```
-
----
-
 ## Sugerencias para la presentación en clase
 - Proyecta los archivos mencionados y sigue el guion: DataStore → Borrador → Firebase → UI.
-- Muestra en vivo (si puedes) cómo al enviar un reporte en un dispositivo/emulador aparece en la lista de otro (demostración en tiempo real).
-- Si no puedes ejecutar en vivo, usa capturas de pantalla o explica el flujo mostrando las líneas de código que añadí con comentarios.
-
+- Muestro en vivo cómo al enviar un reporte en un dispositivo/emulador aparece en la lista de otro (demostración en tiempo real).
 ---
-
-## Próximos pasos (opcional)
-- Puedo generar un archivo `slides.md` con puntos por diapositiva.
-- Puedo añadir pruebas unitarias para `ReportViewModel` y `ReportFormViewModel`.
-
----
-
-Si quieres, ahora genero un `slides.md` para la presentación o añado pruebas pequeñas — dime qué prefieres y lo hago. 😊
