@@ -3,25 +3,27 @@ package com.example.reportemaltrato.ui.theme
 import androidx.compose.ui.graphics.Color
 
 /**
- * Paleta de colores central de la aplicación.
- * Se definen variantes claras y oscuras para soportar modo dinámico mediante [ReporteMaltratoTheme].
- * Convención:
- * - Primary / Secondary: Colores de marca / acento.
- * - Variant: Tonos más oscuros o de contraste.
- * - Background / Surface: Fondos de pantallas y tarjetas.
- * - Error / Success: Estados semánticos.
+ * Paleta basada en tonos aqua / agua marina y blancos suaves.
  */
-val Primary = Color(0xFF1565C0)
-val PrimaryVariant = Color(0xFF003C8F)
-val Secondary = Color(0xFFFFB300)
-val SecondaryVariant = Color(0xFFFF8300)
-val BackgroundLight = Color(0xFFF4F7FB)
-val SurfaceLight = Color(0xFFFFFFFF)
+
+val Primary = Color(0xFF2AA7A7)         // aqua pastel
+val PrimaryVariant = Color(0xFF1F8F8F)
+val Secondary = Color(0xFF78E0D7)       // aqua claro para acentos secundarios
+val SecondaryVariant = Color(0xFF4DD0CE)
+
+val BackgroundLight = Color(0xFFF7FEFC) // blanco con un matiz muy suave verde/azul
+val SurfaceLight = Color(0xFFFFFFFF)    // blanco puro
 val ErrorColor = Color(0xFFB00020)
 val SuccessColor = Color(0xFF2E7D32)
+val WarningColor = Color(0xFFF9A825)
 
 // Colores modo oscuro
-val PrimaryDark = Color(0xFF90CAF9)
-val BackgroundDark = Color(0xFF10171E)
-val SurfaceDark = Color(0xFF1E262E)
-val OnPrimaryDark = Color(0xFF0D47A1)
+val PrimaryDark = Color(0xFF66CEC8)
+val BackgroundDark = Color(0xFF071218)  // oscuro con matiz azul
+val SurfaceDark = Color(0xFF0B1A1A)
+val OnPrimaryDark = Color(0xFF072A28)
+
+// Colores 'on' para modo claro (usados en Theme.kt)
+val OnBackgroundLight = Color(0xFF042423)
+val OnSurfaceLight = Color(0xFF042423)
+val OnPrimaryLight = Color(0xFFFFFFFF)

@@ -29,6 +29,17 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
     private val reportRepository = ReportRepository()
     private val prefsRepository = UserPreferencesRepository(application)
 
+    // COMENTARIOS DIDÁCTICOS:
+    // - Este ViewModel integra dos responsabilidades principales:
+    //   1) Acceder a datos remotos (ReportRepository) para enviar y obtener reportes.
+    //   2) Consultar preferencias locales (UserPreferencesRepository) para determinar el nickname
+    //      que se añadirá al reporte antes de enviarlo.
+    // - Observa que `sendReport` obtiene las preferencias actuales usando `userPreferencesFlow.first()`
+    //   (lectura puntual) para completar el campo `nickname` del reporte; esto demuestra la
+    //   interacción entre DataStore (local) y la capa de red antes de una operación de POST.
+    // - Tras enviar con éxito, el ViewModel fuerza un `fetchReports(force = true)` para refrescar
+    //   la lista local (estrategia de polling/refresh en lugar de listeners push).
+
     private val vmScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     private val _reports = MutableStateFlow<List<Report>>(emptyList())
@@ -67,7 +78,7 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
                 val success = reportRepository.sendReport(toSend)
                 onResult(success)
                 if (success) fetchReports(force = true)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 onResult(false)
             }
         }

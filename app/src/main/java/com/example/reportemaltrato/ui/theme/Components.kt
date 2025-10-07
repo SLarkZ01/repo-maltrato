@@ -4,72 +4,52 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Card
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material3.ElevatedCard as M3ElevatedCard
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 /**
- * Fondo con gradiente vertical reutilizable para darle profundidad y
- * cohesión visual a pantallas principales. Recibe contenido Compose.
+ * Fondo con gradiente usando la paleta de Material3.
+ * Ahora el gradiente mezcla primary con un toque de secondary para un look más vivo.
  */
 @Composable
 fun GradientBackground(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+    val cs = MaterialTheme.colorScheme
     val gradient = Brush.verticalGradient(
         colors = listOf(
-            MaterialTheme.colors.primary.copy(alpha = 0.90f),
-            MaterialTheme.colors.primary.copy(alpha = 0.75f),
-            MaterialTheme.colors.background
+            cs.primary.copy(alpha = 0.95f),
+            cs.secondary.copy(alpha = 0.75f),
+            cs.background
         )
     )
-    Box(modifier = modifier.background(gradient)) {
-        content()
-    }
+    Box(modifier = modifier.background(gradient)) { content() }
 }
 
-/** Título de sección estándar con énfasis en color primario. */
+/** Título de sección con tipografía Material3 y acento secundario. */
+@Suppress("unused")
 @Composable
 fun SectionTitle(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
-        style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold),
-        color = MaterialTheme.colors.primary,
-        modifier = modifier.padding(bottom = 4.dp)
+        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold),
+        color = MaterialTheme.colorScheme.secondary,
+        modifier = modifier.padding(bottom = 6.dp)
     )
 }
 
-/**
- * Tarjeta elevada con esquinas redondeadas y elevación uniforme.
- * Envuelve contenido arbitrario.
- */
+/** Tarjeta elevada Material3 reutilizable. */
 @Composable
 fun ElevatedCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    Card(
+    M3ElevatedCard(
         modifier = modifier,
-        elevation = 6.dp,
-        shape = RoundedCornerShape(18.dp),
-        backgroundColor = MaterialTheme.colors.surface
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) { content() }
-}
-
-/**
- * Pequeña insignia (badge) para mostrar estados, etiquetas o contadores.
- */
-@Composable
-fun Badge(text: String, background: Color, contentColor: Color = Color.White, modifier: Modifier = Modifier) {
-    Surface(
-        modifier = modifier.clip(RoundedCornerShape(50)),
-        color = background,
-        contentColor = contentColor,
-        elevation = 2.dp
-    ) {
-        Text(text = text, style = MaterialTheme.typography.caption, modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp))
-    }
 }

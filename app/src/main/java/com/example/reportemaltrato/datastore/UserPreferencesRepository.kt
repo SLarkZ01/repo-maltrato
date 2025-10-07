@@ -27,6 +27,14 @@ data class UserPreferences(
  */
 class UserPreferencesRepository(private val context: Context) {
 
+    // IMPLEMENTACIÓN: DataStore (Preferences)
+    // - Lectura reactiva: `userPreferencesFlow` expone un Flow<UserPreferences>` que emite
+    //   cada vez que cambian las preferencias en disco. Esto permite que ViewModels y
+    //   la UI (Compose) recojan automáticamente los cambios usando collect/collectAsState.
+    // - Escritura: `updateNickname` y `updateAnonymous` usan `context.dataStore.edit {}`
+    //   para persistir cambios de forma atómica.
+    // - Ventaja didáctica: DataStore reemplaza a SharedPreferences con API basada en Flows.
+
     companion object {
         private val NICKNAME_KEY = stringPreferencesKey("nickname")
         private val ANONYMOUS_KEY = booleanPreferencesKey("anonymous")

@@ -3,8 +3,8 @@ package com.example.reportemaltrato
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
             val registerViewModel: RegisterViewModel = viewModel()
 
             ReporteMaltratoTheme {
-                Surface(color = MaterialTheme.colors.background) {
+                Surface(color = MaterialTheme.colorScheme.background) {
                     // Gráfico de navegación: define las rutas principales de la app.
                     NavHost(navController = navController, startDestination = "register") {
                         composable("register") { RegisterScreen(navController, registerViewModel) }

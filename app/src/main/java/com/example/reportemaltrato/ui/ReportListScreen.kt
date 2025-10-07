@@ -10,23 +10,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.Button
-import androidx.compose.material.Card
-import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Scaffold
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Place
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Cached
+import androidx.compose.material.icons.filled.ReportProblem
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.PermIdentity
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -36,22 +37,34 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.painter.ColorPainter
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.example.reportemaltrato.model.Report
 import com.example.reportemaltrato.ui.theme.ElevatedCard
 import com.example.reportemaltrato.ui.theme.GradientBackground
+import com.example.reportemaltrato.ui.theme.SectionTitle
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlinx.coroutines.delay
 
 /**
- * Pantalla que muestra el listado de reportes obtenidos desde Firebase.
- * Implementa polling periódico (cada 5 segundos) para refrescar la lista.
- * Estados UI: carga inicial, error, vacío o lista de resultados.
- * Usa [ReportViewModel] para orquestar llamadas y exponer flows.
+ * Pantalla que muestra el listado de reportes con Material3 y un layout cómodo para móvil.
+ *
+ * COMENTARIOS DIDÁCTICOS:
+ * - Actualización en "tiempo real": esta pantalla no usa listeners push de Firebase. En su lugar
+ *   implementa un polling simple dentro de `LaunchedEffect` que invoca `viewModel.fetchReports()`
+ *   cada 2 segundos. Esto simula actualizaciones periódicas, pero NO es equivalente a un listener
+ *   en tiempo real (SDK) que recibiría cambios inmediatamente.
+ * - Alternativa: para verdadera actualización en tiempo real se debería usar el SDK de Firebase
+ *   y un `ValueEventListener` o `addValueEventListener`/`ChildEventListener` sobre la referencia.
+ * - UI: toda la interfaz está en Compose; no hay archivos XML con `<layout>` ni DataBinding.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReportListScreen(navController: NavController, viewModel: ReportViewModel = viewModel()) {
     val reports by viewModel.reports.collectAsState()
@@ -61,14 +74,33 @@ fun ReportListScreen(navController: NavController, viewModel: ReportViewModel = 
     LaunchedEffect(Unit) {
         viewModel.fetchReports()
         while (true) {
-            delay(5_000) // Polling cada 5 segundos
+            delay(2_000)
             viewModel.fetchReports()
         }
     }
 
     val dateFormatter = rememberDateFormatter()
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Reportes", style = MaterialTheme.typography.h6.copy(fontWeight = FontWeight.Bold)) }) }) { padding ->
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(title = { Text("Reportes", style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold)) })
+        },
+        bottomBar = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                FilledTonalButton(
+                    onClick = { navController.navigate("main") { popUpTo("list") { inclusive = true } } },
+                    modifier = Modifier.fillMaxWidth()
+                ) { Text("Volver al inicio") }
+            }
+        }
+    ) { padding ->
         GradientBackground(modifier = Modifier
             .padding(padding)
             .fillMaxSize()) {
@@ -77,9 +109,9 @@ fun ReportListScreen(navController: NavController, viewModel: ReportViewModel = 
                 .padding(16.dp)) {
 
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = "Listado (${reports.size})", style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold))
-                    Button(onClick = { viewModel.fetchReports(force = true) }, enabled = !isLoading) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
+                    SectionTitle("Listado (${reports.size})")
+                    FilledTonalButton(onClick = { viewModel.fetchReports(force = true) }, enabled = !isLoading) {
+                        Icon(Icons.Default.Cached, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
                         Text("Refrescar")
                     }
                 }
@@ -96,20 +128,20 @@ fun ReportListScreen(navController: NavController, viewModel: ReportViewModel = 
                     }
                     errorMessage != null && reports.isEmpty() -> {
                         Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colors.error)
+                            Icon(Icons.Default.ReportProblem, contentDescription = null, tint = MaterialTheme.colorScheme.error)
                             Spacer(Modifier.height(8.dp))
-                            Text("Error: $errorMessage", color = MaterialTheme.colors.error)
+                            Text("Error: $errorMessage", color = MaterialTheme.colorScheme.error)
                             Spacer(Modifier.height(8.dp))
-                            Button(onClick = { viewModel.fetchReports(force = true) }) { Text("Reintentar") }
+                            FilledTonalButton(onClick = { viewModel.fetchReports(force = true) }) { Text("Reintentar") }
                         }
                     }
                     reports.isEmpty() -> {
                         Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("No hay reportes todavía", style = MaterialTheme.typography.body1)
+                            Text("No hay reportes todavía", style = MaterialTheme.typography.bodyMedium)
                             Spacer(Modifier.height(6.dp))
-                            Text("Sé el primero en reportar un caso.", style = MaterialTheme.typography.caption, color = MaterialTheme.colors.onBackground.copy(alpha = 0.7f))
+                            Text("Sé el primero en reportar un caso.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f))
                             Spacer(Modifier.height(12.dp))
-                            Button(onClick = { navController.navigate("form") }) { Text("Crear reporte") }
+                            FilledTonalButton(onClick = { navController.navigate("form") }) { Text("Crear reporte") }
                         }
                     }
                     else -> {
@@ -123,63 +155,58 @@ fun ReportListScreen(navController: NavController, viewModel: ReportViewModel = 
                 }
 
                 Spacer(Modifier.height(12.dp))
-                Button(
-                    onClick = { navController.navigate("main") { popUpTo("list") { inclusive = true } } },
-                    modifier = Modifier.fillMaxWidth()
-                ) { Text("Volver al inicio") }
             }
         }
     }
 }
 
-/** Tarjeta individual que presenta los datos de un [Report]. */
+/** Tarjeta individual que presenta los datos de un [Report] con Material3. */
 @Composable
 private fun ReportItemCard(report: Report, dateFormatter: SimpleDateFormat) {
     ElevatedCard(modifier = Modifier
         .fillMaxWidth()
         .padding(bottom = 10.dp)) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(text = report.type, style = MaterialTheme.typography.subtitle1.copy(fontWeight = FontWeight.Bold))
+            Text(text = report.type, style = MaterialTheme.typography.titleMedium)
             Spacer(Modifier.height(4.dp))
-            Text(text = report.description, style = MaterialTheme.typography.body2)
+            Text(text = report.description, style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(8.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Place, contentDescription = null, tint = MaterialTheme.colors.primary)
+                Icon(Icons.Default.LocationOn, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.width(4.dp))
-                Text(text = report.location, style = MaterialTheme.typography.caption)
+                Text(text = report.location, style = MaterialTheme.typography.labelSmall)
             }
             Spacer(Modifier.height(4.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.AccessTime, contentDescription = null, tint = MaterialTheme.colors.primary)
+                Icon(Icons.Default.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                 Spacer(Modifier.width(4.dp))
-                Text(text = dateFormatter.format(Date(report.timestamp)), style = MaterialTheme.typography.caption)
+                Text(text = dateFormatter.format(Date(report.timestamp)), style = MaterialTheme.typography.labelSmall)
             }
-            if (!report.nickname.isNullOrBlank() && report.nickname != "anónimo") {
+            if (report.nickname.isNotBlank() && report.nickname != "anónimo") {
                 Spacer(Modifier.height(4.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Person, contentDescription = null, tint = MaterialTheme.colors.primary)
+                    Icon(Icons.Default.PermIdentity, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.width(4.dp))
-                    Text(text = report.nickname ?: "", style = MaterialTheme.typography.caption)
+                    Text(text = report.nickname, style = MaterialTheme.typography.labelSmall)
                 }
             }
-            // Nueva sección para mostrar enlace de evidencia si existe
             if (!report.imageUrl.isNullOrBlank()) {
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(8.dp))
                 val uriHandler = LocalUriHandler.current
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Image, contentDescription = null, tint = MaterialTheme.colors.primary)
-                    Spacer(Modifier.width(4.dp))
-                    val display = try { // acortar si es muy largo
-                        val url = report.imageUrl!!
-                        if (url.length > 40) url.take(37) + "..." else url
-                    } catch (e: Exception) { "Evidencia" }
-                    Text(
-                        text = display.ifBlank { "Evidencia" },
-                        color = MaterialTheme.colors.primary,
-                        style = MaterialTheme.typography.caption.copy(fontWeight = FontWeight.SemiBold),
-                        modifier = Modifier.clickable { runCatching { uriHandler.openUri(report.imageUrl!!) } }
-                    )
-                }
+                val url = report.imageUrl
+                // Mostrar imagen desde URL en lugar de la URL como texto
+                AsyncImage(
+                    model = url,
+                    contentDescription = "Evidencia",
+                    placeholder = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
+                    error = ColorPainter(MaterialTheme.colorScheme.surfaceVariant),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable { url.let { runCatching { uriHandler.openUri(it) } } },
+                    contentScale = ContentScale.Crop
+                )
             }
         }
     }

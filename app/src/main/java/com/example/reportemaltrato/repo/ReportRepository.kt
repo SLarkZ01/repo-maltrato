@@ -14,8 +14,18 @@ import java.net.URL
  * Repositorio responsable de la comunicación de bajo nivel con Firebase Realtime Database
  * usando llamadas HTTP simples (sin SDK oficial). Se encarga de serializar el modelo [Report].
  *
- * Seguridad: Este enfoque asume reglas abiertas o autenticación previa no implementada aquí.
- * Para producción se recomienda proteger la base de datos y firmar peticiones.
+ * COMENTARIOS DIDÁCTICOS:
+ * - Esta implementación usa la API REST de Realtime Database (URL + ".json"). No se usa
+ *   el SDK oficial de Firebase (com.google.firebase:firebase-database), por lo que no hay
+ *   listeners en tiempo real proporcionados por la SDK (p.ej. addValueEventListener).
+ * - sendReport hace POST a `/reportes.json` para crear un nuevo nodo con clave autogenerada.
+ * - getAllReports hace un GET a `/reportes.json` y parsea el JSON devuelto en una lista de Report.
+ * - Implicación: para ver cambios en tiempo real en la app, es necesario implementar uno de los
+ *   enfoques siguientes:
+ *     1) Usar el SDK de Firebase y agregar un listener (p.ej. addValueEventListener) para recibir
+ *        actualizaciones push.
+ *     2) Implementar polling (como en `ReportListScreen`) que consulta periódicamente la API REST.
+ *   En este proyecto se eligió la opción 2 (polling) por simplicidad.
  */
 class ReportRepository {
 
@@ -23,10 +33,6 @@ class ReportRepository {
         private const val FIREBASE_DB_URL = "https://tallerreportesdenuncia-default-rtdb.firebaseio.com/"
     }
 
-    /**
-     * Convierte un [Report] a JSON plano para enviarlo por HTTP.
-     * Ignora el campo id porque Firebase genera su propia clave.
-     */
     private fun toJson(report: Report): String {
         val obj = JSONObject()
         try {
@@ -42,10 +48,6 @@ class ReportRepository {
         return obj.toString()
     }
 
-    /**
-     * Envía un reporte a Firebase (operación POST) generando un nuevo nodo bajo `reportes`.
-     * @return true si el código HTTP está en el rango 2xx, false en caso de error o excepción.
-     */
     suspend fun sendReport(report: Report): Boolean = withContext(Dispatchers.IO) {
         val url = URL(FIREBASE_DB_URL + "reportes.json")
         var conn: HttpURLConnection? = null
@@ -69,10 +71,6 @@ class ReportRepository {
         }
     }
 
-    /**
-     * Obtiene todos los reportes existentes bajo el nodo `reportes`.
-     * @return Lista de reportes ordenada descendentemente por timestamp. Si falla o no hay datos, lista vacía.
-     */
     suspend fun getAllReports(): List<Report> = withContext(Dispatchers.IO) {
         val url = URL(FIREBASE_DB_URL.trimEnd('/') + "/reportes.json")
         var conn: HttpURLConnection? = null

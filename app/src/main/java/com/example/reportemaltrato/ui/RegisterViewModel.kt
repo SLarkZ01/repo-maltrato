@@ -19,6 +19,14 @@ import kotlinx.coroutines.cancel
  *
  * Flujo de datos:
  * DataStore (Flow<UserPreferences>) -> collect -> _userPreferences (StateFlow) -> UI (Compose collectAsState).
+ *
+ * COMENTARIOS DIDÁCTICOS:
+ * - Aquí se demuestra la integración típica de DataStore con la capa de presentación:
+ *   1) El repositorio (`UserPreferencesRepository`) expone `userPreferencesFlow` (Flow).
+ *   2) El ViewModel recoge ese Flow en `init` y lo publica en `_userPreferences` (MutableStateFlow).
+ *   3) La UI (Compose) hace `collectAsState()` sobre `userPreferences` para recibir actualizaciones automáticamente.
+ * - Las funciones `updateNickname` y `updateAnonymous` lanzan corrutinas en el scope del ViewModel
+ *   para delegar la escritura al repositorio sin bloquear la UI.
  */
 class RegisterViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = UserPreferencesRepository(application)

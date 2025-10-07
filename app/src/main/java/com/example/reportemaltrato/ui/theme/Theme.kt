@@ -1,57 +1,61 @@
 package com.example.reportemaltrato.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material.Colors
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
 import androidx.compose.runtime.Composable
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 
-private val LightColorPalette: Colors = lightColors(
+private val LightColorScheme = lightColorScheme(
     primary = Primary,
-    primaryVariant = PrimaryVariant,
+    onPrimary = OnPrimaryLight,
+    primaryContainer = PrimaryVariant,
+    onPrimaryContainer = OnPrimaryLight,
     secondary = Secondary,
-    secondaryVariant = SecondaryVariant,
+    onSecondary = OnPrimaryLight,
+    secondaryContainer = SecondaryVariant,
+    onSecondaryContainer = OnPrimaryLight,
+    tertiary = SuccessColor,
+    onTertiary = OnPrimaryLight,
+    tertiaryContainer = WarningColor,
+    onTertiaryContainer = OnPrimaryLight,
     background = BackgroundLight,
+    onBackground = OnBackgroundLight,
     surface = SurfaceLight,
+    onSurface = OnSurfaceLight,
+    surfaceVariant = SurfaceLight,
     error = ErrorColor,
-    onPrimary = androidx.compose.ui.graphics.Color.White,
-    onSecondary = androidx.compose.ui.graphics.Color.Black,
-    onBackground = androidx.compose.ui.graphics.Color(0xFF1B1F23),
-    onSurface = androidx.compose.ui.graphics.Color(0xFF1B1F23),
-    onError = androidx.compose.ui.graphics.Color.White
+    onError = OnPrimaryLight
 )
 
-private val DarkColorPalette: Colors = darkColors(
+private val DarkColorScheme = darkColorScheme(
     primary = PrimaryDark,
-    primaryVariant = Primary,
-    secondary = Secondary,
-    background = BackgroundDark,
-    surface = SurfaceDark,
-    error = ErrorColor,
     onPrimary = OnPrimaryDark,
-    onSecondary = androidx.compose.ui.graphics.Color.Black,
+    primaryContainer = Primary,
+    onPrimaryContainer = OnPrimaryDark,
+    secondary = Secondary,
+    onSecondary = OnPrimaryDark,
+    secondaryContainer = SecondaryVariant,
+    onSecondaryContainer = OnPrimaryDark,
+    tertiary = SuccessColor,
+    onTertiary = OnPrimaryDark,
+    tertiaryContainer = WarningColor,
+    onTertiaryContainer = OnPrimaryDark,
+    background = BackgroundDark,
     onBackground = androidx.compose.ui.graphics.Color(0xFFE6E6E6),
+    surface = SurfaceDark,
     onSurface = androidx.compose.ui.graphics.Color(0xFFE6E6E6),
+    surfaceVariant = SurfaceDark,
+    error = ErrorColor,
     onError = androidx.compose.ui.graphics.Color.White
 )
 
-/**
- * Tema principal de la aplicación.
- * Selecciona dinámicamente la paleta clara u oscura según [isSystemInDarkTheme],
- * y propaga tipografía y shapes definidos en este módulo.
- *
- * Para migrar a Material3 sería necesario reemplazar `MaterialTheme` por la versión de `material3`
- * y ajustar colores a un esquema de tonalidades dinámicas.
- */
 @Composable
 fun ReporteMaltratoTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
-    val colors = if (darkTheme) DarkColorPalette else LightColorPalette
+    val colors = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
-        colors = colors,
-        typography = AppTypography,
-        shapes = AppShapes,
+        colorScheme = colors,
         content = content
     )
 }
