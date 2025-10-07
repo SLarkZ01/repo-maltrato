@@ -15,7 +15,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Cached
 import androidx.compose.material.icons.filled.ReportProblem
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Schedule
@@ -29,7 +28,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -50,18 +48,15 @@ import com.example.reportemaltrato.ui.theme.SectionTitle
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import kotlinx.coroutines.delay
 
 /**
  * Pantalla que muestra el listado de reportes con Material3 y un layout cómodo para móvil.
  *
  * COMENTARIOS DIDÁCTICOS:
- * - Actualización en "tiempo real": esta pantalla no usa listeners push de Firebase. En su lugar
- *   implementa un polling simple dentro de `LaunchedEffect` que invoca `viewModel.fetchReports()`
- *   cada 2 segundos. Esto simula actualizaciones periódicas, pero NO es equivalente a un listener
- *   en tiempo real (SDK) que recibiría cambios inmediatamente.
- * - Alternativa: para verdadera actualización en tiempo real se debería usar el SDK de Firebase
- *   y un `ValueEventListener` o `addValueEventListener`/`ChildEventListener` sobre la referencia.
+ * - Actualización en "tiempo real": ahora la app usa el SDK de Firebase y listeners push.
+ *   El `ReportViewModel` se suscribe a un Flow que envía actualizaciones en tiempo real
+ *   (implementado vía `ValueEventListener` en `FirebaseRealtimeRepository`). Por tanto ya no
+ *   se utiliza polling en esta pantalla.
  * - UI: toda la interfaz está en Compose; no hay archivos XML con `<layout>` ni DataBinding.
  */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -71,13 +66,7 @@ fun ReportListScreen(navController: NavController, viewModel: ReportViewModel = 
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-    LaunchedEffect(Unit) {
-        viewModel.fetchReports()
-        while (true) {
-            delay(2_000)
-            viewModel.fetchReports()
-        }
-    }
+    // Ya no hay polling: el ViewModel recibe actualizaciones push desde FirebaseRealtimeRepository
 
     val dateFormatter = rememberDateFormatter()
 
@@ -108,12 +97,9 @@ fun ReportListScreen(navController: NavController, viewModel: ReportViewModel = 
                 .fillMaxSize()
                 .padding(16.dp)) {
 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                // Cabecera del listado: título y contador. El botón de refrescar fue eliminado
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     SectionTitle("Listado (${reports.size})")
-                    FilledTonalButton(onClick = { viewModel.fetchReports(force = true) }, enabled = !isLoading) {
-                        Icon(Icons.Default.Cached, contentDescription = null, modifier = Modifier.padding(end = 6.dp))
-                        Text("Refrescar")
-                    }
                 }
 
                 Spacer(Modifier.height(12.dp))

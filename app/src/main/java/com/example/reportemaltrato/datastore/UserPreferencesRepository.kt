@@ -24,16 +24,16 @@ data class UserPreferences(
  * Repositorio que encapsula el acceso a DataStore (preferences) para leer y actualizar
  * las preferencias del usuario (nickname y modo anónimo). Provee un flujo reactivo [userPreferencesFlow]
  * que emite cada vez que se actualizan las preferencias.
+ *
+ * Conexión con los requisitos de la clase:
+ * - Implementación del registro con DataStore: este repositorio es la pieza central que
+ *   persiste la identidad del usuario (nickname/anonymous) usando Preferences DataStore.
+ * - Flujo de datos hacia la UI: `userPreferencesFlow` es un Flow<UserPreferences> que el
+ *   ViewModel (`RegisterViewModel`) recoge y expone a la UI mediante `collectAsState()` en Compose.
+ * - Modo de uso: escribir se hace mediante `updateNickname` y `updateAnonymous` (operaciones
+ *   asíncronas que llaman a `dataStore.edit {}`), lectura reactiva mediante el Flow.
  */
 class UserPreferencesRepository(private val context: Context) {
-
-    // IMPLEMENTACIÓN: DataStore (Preferences)
-    // - Lectura reactiva: `userPreferencesFlow` expone un Flow<UserPreferences>` que emite
-    //   cada vez que cambian las preferencias en disco. Esto permite que ViewModels y
-    //   la UI (Compose) recojan automáticamente los cambios usando collect/collectAsState.
-    // - Escritura: `updateNickname` y `updateAnonymous` usan `context.dataStore.edit {}`
-    //   para persistir cambios de forma atómica.
-    // - Ventaja didáctica: DataStore reemplaza a SharedPreferences con API basada en Flows.
 
     companion object {
         private val NICKNAME_KEY = stringPreferencesKey("nickname")
@@ -41,6 +41,7 @@ class UserPreferencesRepository(private val context: Context) {
     }
 
     // Flujo que expone la lectura de preferencias como dominio puro.
+    // La UI/ViewModel pueden suscribirse para recibir actualizaciones en tiempo real.
     val userPreferencesFlow: Flow<UserPreferences> = context.dataStore.data
         .map { prefs ->
             val nickname = prefs[NICKNAME_KEY] ?: ""
@@ -50,6 +51,7 @@ class UserPreferencesRepository(private val context: Context) {
 
     /** Actualiza el nickname persistido. */
     suspend fun updateNickname(nickname: String) {
+        // Escritura atómica en DataStore
         context.dataStore.edit { prefs ->
             prefs[NICKNAME_KEY] = nickname
         }
@@ -57,6 +59,7 @@ class UserPreferencesRepository(private val context: Context) {
 
     /** Activa o desactiva el modo anónimo. */
     suspend fun updateAnonymous(anonymous: Boolean) {
+        // Escritura atómica en DataStore
         context.dataStore.edit { prefs ->
             prefs[ANONYMOUS_KEY] = anonymous
         }

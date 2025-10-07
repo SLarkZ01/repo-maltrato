@@ -23,6 +23,15 @@ data class ReportDraft(
  * Repositorio que usa Preferences DataStore para persistir un borrador del formulario de reporte.
  * - Expondrá un Flow<ReportDraft> para que la UI pueda mostrar el borrador.
  * - Permite actualizar campos parciales y limpiar el borrador después de enviar.
+ *
+ * Conexión con los requisitos:
+ * - Implementación del registro con DataStore: aunque el 'registro' principal de identidad
+ *   del usuario está en `UserPreferencesRepository`, este repositorio demuestra el uso de
+ *   DataStore para persistir el borrador del formulario (otro uso didáctico de DataStore).
+ * - Reportes enviados y guardados en Firebase: el borrador se utiliza en la UI para componer
+ *   la petición que luego el ViewModel envía a Firebase.
+ * - Uso en el formulario de reportes: `ReportFormScreen` suscribe a `draftFlow` y también
+ *   invoca las funciones `update*` para persistir cada cambio de campo en tiempo real.
  */
 class ReportDraftRepository(private val context: Context) {
 
@@ -33,6 +42,7 @@ class ReportDraftRepository(private val context: Context) {
         private val IMAGE_URL_KEY = stringPreferencesKey("draft_image_url")
     }
 
+    // Flow que representa el borrador actual. La UI se suscribe para sincronizar estado.
     val draftFlow: Flow<ReportDraft> = context.dataStore.data
         .map { prefs ->
             ReportDraft(
@@ -44,12 +54,14 @@ class ReportDraftRepository(private val context: Context) {
         }
 
     suspend fun updateType(type: String) {
+        // Escritura incremental: actualiza solo la clave TYPE_KEY
         context.dataStore.edit { prefs ->
             prefs[TYPE_KEY] = type
         }
     }
 
     suspend fun updateDescription(description: String) {
+        // Escritura incremental: mantener sincronizado el borrador en disco
         context.dataStore.edit { prefs ->
             prefs[DESCRIPTION_KEY] = description
         }
@@ -68,6 +80,7 @@ class ReportDraftRepository(private val context: Context) {
     }
 
     suspend fun clearDraft() {
+        // Limpia todas las claves del borrador después de un envío exitoso
         context.dataStore.edit { prefs ->
             prefs.remove(TYPE_KEY)
             prefs.remove(DESCRIPTION_KEY)

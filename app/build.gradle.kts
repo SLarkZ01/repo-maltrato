@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlin.android)
     // aplicar directamente el plugin del Compose Compiler
     id("org.jetbrains.kotlin.plugin.compose") version "2.2.0"
+    // Plugin de Google Services para Firebase
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -84,6 +86,10 @@ dependencies {
     // Lifecycle
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+
+    // Firebase BOM + Realtime Database KTX
+    implementation(platform("com.google.firebase:firebase-bom:32.2.0"))
+    implementation("com.google.firebase:firebase-database-ktx")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

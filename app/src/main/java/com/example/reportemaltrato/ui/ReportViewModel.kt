@@ -3,7 +3,7 @@ package com.example.reportemaltrato.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import com.example.reportemaltrato.model.Report
-import com.example.reportemaltrato.repo.ReportRepository
+import com.example.reportemaltrato.repo.FirebaseRealtimeRepository
 import com.example.reportemaltrato.datastore.UserPreferencesRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -22,11 +22,17 @@ import kotlinx.coroutines.cancel
  * - [isLoading]: estado de carga para operaciones de red.
  * - [errorMessage]: mensaje de error temporal cuando una petición falla.
  *
- * Flujo general:
- * UI -> sendReport() / fetchReports() -> Repository (HTTP) -> Actualiza flows internos -> UI (collectAsState).
+ * Relación con los requisitos:
+ * - Implementación del registro con DataStore: el ViewModel consulta `UserPreferencesRepository`
+ *   para obtener el nickname actual antes de enviar (`sendReport`). Esto demuestra lectura puntual
+ *   de DataStore y su integración con la capa de red.
+ * - Reportes enviados y guardados en Firebase: `sendReport` delega en `FirebaseRealtimeRepository.sendReport`.
+ * - Listado de reportes actualizado en tiempo real: en `init` el ViewModel se suscribe a
+ *   `firebaseRepository.reportsFlow`, que proviene de un `ValueEventListener` (push) en Firebase.
  */
 class ReportViewModel(application: Application) : AndroidViewModel(application) {
-    private val reportRepository = ReportRepository()
+    // Ahora usamos el SDK de Firebase para listeners en tiempo real
+    private val firebaseRepository = FirebaseRealtimeRepository()
     private val prefsRepository = UserPreferencesRepository(application)
 
     // COMENTARIOS DIDÁCTICOS:
@@ -37,8 +43,8 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
     // - Observa que `sendReport` obtiene las preferencias actuales usando `userPreferencesFlow.first()`
     //   (lectura puntual) para completar el campo `nickname` del reporte; esto demuestra la
     //   interacción entre DataStore (local) y la capa de red antes de una operación de POST.
-    // - Tras enviar con éxito, el ViewModel fuerza un `fetchReports(force = true)` para refrescar
-    //   la lista local (estrategia de polling/refresh en lugar de listeners push).
+    // - Tras enviar con éxito, el ViewModel no fuerza un fetch porque el listener en tiempo real
+    //   actualizará automáticamente `reports` (estrategia push basada en Flow).
 
     private val vmScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
@@ -51,14 +57,30 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
     private val _errorMessage = MutableStateFlow<String?>(null)
     val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
 
-    /** Descarga (GET) la lista de reportes. Si ya está cargando y no se fuerza, ignora la petición. */
+    init {
+        // Suscribirse al Flow proporcionado por FirebaseRealtimeRepository (ValueEventListener)
+        // Esto implementa el requisito: "Listado de reportes actualizado en tiempo real"
+        vmScope.launch {
+            try {
+                firebaseRepository.reportsFlow.collect { list ->
+                    // Al recibir una emisión, actualizamos el StateFlow que expone la UI
+                    _reports.value = list
+                }
+            } catch (e: Exception) {
+                // Cualquier error de escucha se refleja en errorMessage para que la UI lo muestre
+                _errorMessage.value = e.message ?: "Error de conexión"
+            }
+        }
+    }
+
+    /** Descarga manual (one-shot) usando SDK, útil para refresco manual. */
     fun fetchReports(force: Boolean = false) {
         if (_isLoading.value && !force) return
         vmScope.launch {
             _isLoading.value = true
             _errorMessage.value = null
             try {
-                val list = reportRepository.getAllReports()
+                val list = firebaseRepository.getAllOnce()
                 _reports.value = list
             } catch (e: Exception) {
                 _errorMessage.value = e.message ?: "Error desconocido"
@@ -72,12 +94,15 @@ class ReportViewModel(application: Application) : AndroidViewModel(application) 
     fun sendReport(report: Report, onResult: (Boolean) -> Unit) {
         vmScope.launch {
             try {
+                // Leer las preferencias actuales desde DataStore (lectura puntual)
                 val prefs = prefsRepository.userPreferencesFlow.first()
                 val nickname = if (prefs.anonymous || prefs.nickname.isBlank()) "anónimo" else prefs.nickname
                 val toSend = report.copy(nickname = nickname)
-                val success = reportRepository.sendReport(toSend)
+
+                // Delegar el envío al repositorio Firebase (push + setValue)
+                val success = firebaseRepository.sendReport(toSend)
                 onResult(success)
-                if (success) fetchReports(force = true)
+                // No necesitamos forzar fetch: el listener en tiempo real actualizará la lista
             } catch (_: Exception) {
                 onResult(false)
             }
